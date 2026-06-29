@@ -29,11 +29,23 @@
 
   body {
     font-family: var(--font);
-    background: var(--bg);
+    background: #050810;
     color: var(--text);
     min-height: 100vh;
-    padding-bottom: 90px;
     overscroll-behavior: none;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* ── APP WRAPPER (centrato su desktop) ── */
+  #app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    position: relative;
+    background: var(--bg);
+    padding-bottom: 90px;
+    box-shadow: 0 0 60px rgba(0,0,0,0.5);
   }
 
   /* ── HEADER ── */
@@ -101,6 +113,7 @@
     position: sticky;
     top: 0;
     z-index: 10;
+    width: 100%;
   }
   .tab {
     flex: 1;
@@ -126,7 +139,7 @@
   /* ── SUMMARY CARDS ── */
   .summary-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 12px;
     padding: 20px 16px 8px;
   }
@@ -442,7 +455,11 @@
   /* ── BOTTOM NAV ── */
   .bottom-nav {
     position: fixed;
-    bottom: 0; left: 0; right: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
     background: rgba(17,24,39,0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -474,6 +491,7 @@
     position: fixed;
     top: 60px; left: 50%;
     transform: translateX(-50%) translateY(-20px);
+    z-index: 300;
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -558,7 +576,7 @@
   }
   .print-scope-btns {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
     margin-bottom: 16px;
   }
@@ -624,7 +642,7 @@
 </style>
 </head>
 <body>
-
+<div id="app">
 <div id="toast" class="toast"></div>
 
 <!-- PRINT MODAL -->
@@ -676,10 +694,7 @@
       <div class="summary-label">Ore Settimana</div>
       <div class="summary-value" id="sumWeekHours">0<span class="summary-unit">h</span></div>
     </div>
-    <div class="summary-card gold">
-      <div class="summary-label">Obiettivo</div>
-      <div class="summary-value" id="sumTarget">40<span class="summary-unit">h</span></div>
-    </div>
+
     <div class="summary-card green">
       <div class="summary-label">Giorni Lavorati</div>
       <div class="summary-value" id="sumDaysWorked">0<span class="summary-unit">gg</span></div>
@@ -690,15 +705,7 @@
     </div>
   </div>
 
-  <div class="progress-section">
-    <div class="progress-label">
-      <span>Avanzamento settimana</span>
-      <span id="progressPct">0%</span>
-    </div>
-    <div class="progress-bar">
-      <div class="progress-fill" id="progressFill" style="width:0%"></div>
-    </div>
-  </div>
+
 
   <div class="week-nav">
     <button class="week-nav-btn" onclick="changeWeek(-1)">‹</button>
@@ -737,17 +744,7 @@
 <!-- ===== SETTINGS ===== -->
 <div id="tab-settings" class="content">
   <div class="settings-section">
-    <div class="settings-card">
-      <div class="settings-title">Obiettivo Settimanale</div>
-      <div class="settings-row" style="cursor:default">
-        <div class="settings-icon gold">🎯</div>
-        <div class="settings-text">
-          <div class="settings-row-label">Ore Target / Settimana</div>
-          <div class="settings-row-sub">Usato per il calcolo dell'avanzamento</div>
-        </div>
-        <input type="number" class="target-input" id="targetInput" value="40" min="1" max="80" onchange="saveTarget()">
-      </div>
-    </div>
+
 
     <div class="settings-card">
       <div class="settings-title">Dati</div>
@@ -959,17 +956,12 @@ function renderWeekly() {
   const daysWorked = weekData.days.filter(d => d.shifts.length > 0 &&
     d.shifts.some(sh => shiftHours(parseTime(sh.in), parseTime(sh.out)) > 0)).length;
   const avg = daysWorked > 0 ? totalH / daysWorked : 0;
-  const target = state.target;
-  const pct = Math.min(100, Math.round((totalH / target) * 100));
 
   document.getElementById('sumWeekHours').innerHTML = `${fmtH(totalH).replace('h','<span class="summary-unit">h</span>').replace('m','<span class="summary-unit">m</span>')}`;
   // simpler
   document.getElementById('sumWeekHours').textContent = fmtH(totalH);
-  document.getElementById('sumTarget').textContent = target + 'h';
   document.getElementById('sumDaysWorked').textContent = daysWorked + ' gg';
   document.getElementById('sumAvgDay').textContent = fmtH(avg);
-  document.getElementById('progressPct').textContent = pct + '%';
-  document.getElementById('progressFill').style.width = pct + '%';
 
   // days
   const list = document.getElementById('daysList');
@@ -1042,7 +1034,7 @@ function renderShifts(dayIdx, dayData, weekKey) {
           oninput="liveUpdateShift('${weekKey}',${dayIdx},${si},'out',this.value)">
       </div>
       <div class="shift-hours-badge" id="sh-badge-${dayIdx}-${si}">${h > 0 ? fmtH(h) : '—'}</div>
-      <button class="remove-shift-btn" onclick="removeShift('${weekKey}',${dayIdx},${si})">×</button>
+      <button class="remove-shift-btn" onclick="confirmRemoveShift('${weekKey}',${dayIdx},${si})">×</button>
     `;
     container.appendChild(row);
   });
@@ -1060,6 +1052,12 @@ function addShift(dayIdx) {
     const el = document.getElementById(`body-${dayIdx}`);
     if (el) el.classList.add('open');
   }, 10);
+}
+
+function confirmRemoveShift(weekKey, dayIdx, shiftIdx) {
+  if (confirm('Eliminare questo turno?')) {
+    removeShift(weekKey, dayIdx, shiftIdx);
+  }
 }
 
 function removeShift(weekKey, dayIdx, shiftIdx) {
@@ -1097,14 +1095,10 @@ function refreshSummary(weekKey) {
   const totalH = getTotalHoursForWeek(weekData);
   const daysWorked = weekData.days.filter(d => d.shifts.some(sh => shiftHours(parseTime(sh.in), parseTime(sh.out)) > 0)).length;
   const avg = daysWorked > 0 ? totalH / daysWorked : 0;
-  const target = state.target;
-  const pct = Math.min(100, Math.round((totalH / target) * 100));
 
   document.getElementById('sumWeekHours').textContent = fmtH(totalH);
   document.getElementById('sumDaysWorked').textContent = daysWorked + ' gg';
   document.getElementById('sumAvgDay').textContent = fmtH(avg);
-  document.getElementById('progressPct').textContent = pct + '%';
-  document.getElementById('progressFill').style.width = pct + '%';
 
   // update day badges
   weekData.days.forEach((day, i) => {
@@ -1209,15 +1203,6 @@ function switchTab(name) {
 }
 
 // ───────── SETTINGS ─────────
-function saveTarget() {
-  const val = parseInt(document.getElementById('targetInput').value) || 40;
-  state.target = Math.max(1, Math.min(80, val));
-  document.getElementById('targetInput').value = state.target;
-  document.getElementById('sumTarget').textContent = state.target + 'h';
-  save();
-  renderWeekly();
-  showToast('Obiettivo aggiornato', 'success');
-}
 
 function exportData() {
   const json = JSON.stringify(state, null, 2);
@@ -1242,8 +1227,7 @@ function importData(event) {
       if (imported.db) {
         state.db = { ...state.db, ...imported.db };
         if (imported.target) state.target = imported.target;
-        document.getElementById('targetInput').value = state.target;
-        save();
+              save();
         renderWeekly();
         showToast('Dati importati ✓', 'success');
       } else {
@@ -1427,7 +1411,6 @@ function doPrint() {
 // ───────── INIT ─────────
 function init() {
   load();
-  document.getElementById('targetInput').value = state.target;
 
   // today label
   const now = new Date();
@@ -1461,5 +1444,7 @@ function init() {
 
 init();
 </script>
+</div><!-- /app -->
 </body>
 </html>
+
