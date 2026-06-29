@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Orari Daniele">
+<title>Orari Daniele</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --card: #1a2235;
+    --accent: #3b82f6;
+    --accent2: #60a5fa;
+    --gold: #f59e0b;
+    --green: #10b981;
+    --red: #ef4444;
+    --purple: #8b5cf6;
+    --text: #f1f5f9;
+    --muted: #64748b;
+    --border: #1e293b;
+    --radius: 16px;
+    --font: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: var(--font);
+    background: #050810;
+    color: var(--text);
+    min-height: 100vh;
+    overscroll-behavior: none;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* ── APP WRAPPER (centrato su desktop) ── */
+  #app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    position: relative;
+    background: var(--bg);
+    padding-bottom: 90px;
+    box-shadow: 0 0 60px rgba(0,0,0,0.5);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 60%, #1a1035 100%);
+    padding: 56px 20px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(59,130,246,0.25) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -20px; left: 10%;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .header-inner { position: relative; z-index: 1; }
+  .header-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 4px;
+  }
+  .header-name {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    line-height: 1.1;
+  }
+  .header-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .header-week-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(59,130,246,0.15);
+    border: 1px solid rgba(59,130,246,0.3);
+    border-radius: 20px;
+    padding: 4px 12px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--accent2);
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    width: 100%;
+  }
+  .tab {
+    flex: 1;
+    padding: 14px 8px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* ── CONTENT ── */
+  .content { display: none; }
+  .content.active { display: block; }
+
+  /* ── SUMMARY CARDS ── */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    padding: 20px 16px 8px;
+  }
+  .summary-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 18px 16px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .summary-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .summary-card.blue::after { background: var(--accent); }
+  .summary-card.gold::after { background: var(--gold); }
+  .summary-card.green::after { background: var(--green); }
+  .summary-card.purple::after { background: var(--purple); }
+  .summary-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .summary-value {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+  .summary-card.blue .summary-value { color: var(--accent2); }
+  .summary-card.gold .summary-value { color: var(--gold); }
+  .summary-card.green .summary-value { color: var(--green); }
+  .summary-card.purple .summary-value { color: var(--purple); }
+  .summary-unit {
+    font-size: 13px;
+    font-weight: 400;
+    opacity: 0.7;
+    margin-left: 2px;
+  }
+
+  /* ── WEEK SELECTOR ── */
+  .week-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 16px 8px;
+  }
+  .week-nav-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    -webkit-appearance: none;
+  }
+  .week-nav-btn:active { background: var(--accent); }
+  .week-label {
+    text-align: center;
+    flex: 1;
+  }
+  .week-label-main { font-size: 15px; font-weight: 600; }
+  .week-label-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* ── DAY CARDS ── */
+  .days-list { padding: 0 16px; }
+  .day-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: transform 0.15s;
+  }
+  .day-card:active { transform: scale(0.98); }
+  .day-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    cursor: pointer;
+  }
+  .day-name-group { display: flex; align-items: center; gap: 12px; }
+  .day-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+  .day-dot.off { background: var(--muted); }
+  .day-dot.rest { background: var(--red); }
+  .day-name { font-size: 15px; font-weight: 600; }
+  .day-date { font-size: 11px; color: var(--muted); }
+  .day-shifts-preview {
+    font-size: 11px;
+    color: var(--accent2);
+    margin-top: 3px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+  }
+  .day-hours-badge {
+    background: rgba(59,130,246,0.15);
+    color: var(--accent2);
+    border-radius: 10px;
+    padding: 4px 12px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .day-hours-badge.zero {
+    background: rgba(100,116,139,0.15);
+    color: var(--muted);
+  }
+
+  .day-body { padding: 0 16px 14px; }
+  .shift-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .shift-row:first-child { margin-top: 0; }
+  .shift-label {
+    font-size: 11px;
+    color: var(--muted);
+    width: 44px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .time-input-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+  }
+  .time-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 600;
+    padding: 8px 6px;
+    width: 0;
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    -webkit-appearance: none;
+    outline: none;
+  }
+  .time-input:focus { border-color: var(--accent); }
+  .time-sep { color: var(--muted); font-size: 16px; font-weight: 300; flex-shrink: 0; }
+  .shift-hours-badge {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--green);
+    min-width: 38px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .remove-shift-btn {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.25);
+    border-radius: 8px;
+    color: var(--red);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 6px 8px;
+    line-height: 1;
+    flex-shrink: 0;
+    -webkit-appearance: none;
+    transition: background 0.15s;
+  }
+  .remove-shift-btn:active { background: rgba(239,68,68,0.3); }
+  .add-shift-btn {
+    margin-top: 10px;
+    background: rgba(59,130,246,0.1);
+    border: 1px dashed rgba(59,130,246,0.3);
+    border-radius: 10px;
+    color: var(--accent2);
+    font-size: 13px;
+    padding: 8px;
+    width: 100%;
+    cursor: pointer;
+    -webkit-appearance: none;
+    transition: background 0.15s;
+  }
+  .add-shift-btn:active { background: rgba(59,130,246,0.25); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-section { padding: 8px 16px 16px; }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .progress-bar {
+    background: var(--surface);
+    border-radius: 6px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--accent), var(--purple));
+    transition: width 0.4s ease;
+  }
+
+  /* ── MONTHLY VIEW ── */
+  .month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 16px 8px;
+  }
+  .month-grid { padding: 0 16px; }
+  .month-week-row {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .month-week-row:active { background: var(--surface); }
+  .month-week-label { font-size: 13px; font-weight: 600; }
+  .month-week-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .month-week-hours {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent2);
+  }
+  .month-total-card {
+    background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.15));
+    border: 1px solid rgba(59,130,246,0.3);
+    border-radius: var(--radius);
+    padding: 20px 16px;
+    margin: 0 16px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .month-total-label { font-size: 14px; font-weight: 600; color: var(--accent2); }
+  .month-total-value { font-size: 32px; font-weight: 700; color: var(--text); }
+
+  /* ── SETTINGS / IMPORT-EXPORT ── */
+  .settings-section { padding: 16px; }
+  .settings-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .settings-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    padding: 14px 16px 0;
+    margin-bottom: 8px;
+  }
+  .settings-row {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    gap: 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .settings-row:first-of-type { border-top: none; }
+  .settings-row:active { background: var(--surface); }
+  .settings-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .settings-icon.green { background: rgba(16,185,129,0.15); }
+  .settings-icon.blue { background: rgba(59,130,246,0.15); }
+  .settings-icon.gold { background: rgba(245,158,11,0.15); }
+  .settings-icon.red { background: rgba(239,68,68,0.15); }
+  .settings-icon.purple { background: rgba(139,92,246,0.15); }
+  .settings-text { flex: 1; }
+  .settings-row-label { font-size: 15px; font-weight: 500; }
+  .settings-row-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .settings-chevron { color: var(--muted); font-size: 14px; }
+  .target-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 16px;
+    font-weight: 600;
+    padding: 8px 12px;
+    width: 80px;
+    text-align: center;
+    -webkit-appearance: none;
+    outline: none;
+  }
+  .target-input:focus { border-color: var(--accent); }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    background: rgba(17,24,39,0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 20;
+  }
+  .nav-item {
+    flex: 1;
+    padding: 12px 4px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .nav-item:active { opacity: 0.6; }
+  .nav-icon { font-size: 22px; line-height: 1; }
+  .nav-label {
+    font-size: 10px;
+    margin-top: 4px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .nav-item.active .nav-icon { filter: none; }
+  .nav-item.active .nav-label { color: var(--accent); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    top: 60px; left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    z-index: 300;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 100;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .toast.success { border-color: rgba(16,185,129,0.4); color: var(--green); }
+  .toast.error { border-color: rgba(239,68,68,0.4); color: var(--red); }
+
+  /* ── MISC ── */
+  .section-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    padding: 16px 16px 8px;
+    font-weight: 600;
+  }
+  .divider { height: 1px; background: var(--border); margin: 0 16px; }
+  input[type="file"] { display: none; }
+
+  /* Day expanded state */
+  .day-body-wrapper { display: none; }
+  .day-body-wrapper.open { display: block; }
+
+  /* Animation */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  .pulse { animation: pulse 2s infinite; }
+
+  /* ── PRINT MODAL ── */
+  .print-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .print-modal-overlay.open { display: flex; }
+  .print-modal {
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    padding: 24px 20px 40px;
+    width: 100%;
+    max-width: 480px;
+    border-top: 1px solid var(--border);
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .print-modal-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+  .print-modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .print-modal-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  .print-scope-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .print-scope-btn {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 14px 10px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .print-scope-btn.selected {
+    border-color: var(--accent);
+    background: rgba(59,130,246,0.15);
+    color: var(--accent2);
+  }
+  .print-scope-btn:active { opacity: 0.7; }
+  .print-scope-icon { font-size: 22px; display: block; margin-bottom: 6px; }
+  .print-action-btn {
+    width: 100%;
+    background: var(--accent);
+    border: none;
+    border-radius: 14px;
+    color: #fff;
+    font-family: var(--font);
+    font-size: 16px;
+    font-weight: 700;
+    padding: 16px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    margin-bottom: 10px;
+    transition: opacity 0.15s;
+  }
+  .print-action-btn:active { opacity: 0.8; }
+  .print-cancel-btn {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    color: var(--muted);
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 600;
+    padding: 14px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    transition: opacity 0.15s;
+  }
+  .print-cancel-btn:active { opacity: 0.7; }
+  .print-tip {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+<div id="toast" class="toast"></div>
+
+<!-- PRINT MODAL -->
+<div class="print-modal-overlay" id="printModal" onclick="closePrintModal(event)">
+  <div class="print-modal">
+    <div class="print-modal-handle"></div>
+    <div class="print-modal-title">🖨️ Stampa Orari</div>
+    <div class="print-modal-sub">Scegli cosa stampare, poi seleziona l'app di stampa (Epson iPrint, AirPrint…)</div>
+    <div class="print-scope-btns">
+      <button class="print-scope-btn selected" id="btnScopeWeek" onclick="selectScope('week')">
+        <span class="print-scope-icon">📅</span>
+        Settimana<br>corrente
+      </button>
+      <button class="print-scope-btn" id="btnScopeMonth" onclick="selectScope('month')">
+        <span class="print-scope-icon">📊</span>
+        Mese<br>corrente
+      </button>
+    </div>
+    <button class="print-action-btn" onclick="doPrint()">Apri per la stampa</button>
+    <button class="print-cancel-btn" onclick="closePrintModal()">Annulla</button>
+    <div class="print-tip">Si aprirà una finestra con il documento formattato.<br>Da lì usa "Condividi" → Epson iPrint / AirPrint.</div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-title">Turni di Lavoro</div>
+    <div class="header-name">Orari Daniele</div>
+    <div class="header-sub" id="todayLabel">Oggi è —</div>
+    <div class="header-week-badge">
+      <span>📅</span>
+      <span id="headerWeekLabel">Settimana corrente</span>
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" data-tab="weekly" onclick="switchTab('weekly')">Settimana</div>
+  <div class="tab" data-tab="monthly" onclick="switchTab('monthly')">Mese</div>
+  <div class="tab" data-tab="settings" onclick="switchTab('settings')">Impostazioni</div>
+</div>
+
+<!-- ===== WEEKLY ===== -->
+<div id="tab-weekly" class="content active">
+  <div class="summary-grid">
+    <div class="summary-card blue">
+      <div class="summary-label">Ore Settimana</div>
+      <div class="summary-value" id="sumWeekHours">0<span class="summary-unit">h</span></div>
+    </div>
+
+    <div class="summary-card green">
+      <div class="summary-label">Giorni Lavorati</div>
+      <div class="summary-value" id="sumDaysWorked">0<span class="summary-unit">gg</span></div>
+    </div>
+    <div class="summary-card purple">
+      <div class="summary-label">Media/Giorno</div>
+      <div class="summary-value" id="sumAvgDay">0<span class="summary-unit">h</span></div>
+    </div>
+  </div>
+
+
+
+  <div class="week-nav">
+    <button class="week-nav-btn" onclick="changeWeek(-1)">‹</button>
+    <div class="week-label">
+      <div class="week-label-main" id="weekLabelMain">—</div>
+      <div class="week-label-sub" id="weekLabelSub">—</div>
+    </div>
+    <button class="week-nav-btn" onclick="changeWeek(1)">›</button>
+  </div>
+
+  <div class="days-list" id="daysList"></div>
+</div>
+
+<!-- ===== MONTHLY ===== -->
+<div id="tab-monthly" class="content">
+  <div class="month-nav">
+    <button class="week-nav-btn" onclick="changeMonth(-1)">‹</button>
+    <div class="week-label">
+      <div class="week-label-main" id="monthLabelMain">—</div>
+    </div>
+    <button class="week-nav-btn" onclick="changeMonth(1)">›</button>
+  </div>
+
+  <div class="month-total-card">
+    <div>
+      <div class="month-total-label">Totale Mese</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px" id="monthDaysInfo">—</div>
+    </div>
+    <div class="month-total-value" id="monthTotalHours">0h</div>
+  </div>
+
+  <div class="section-title">Dettaglio per Settimana</div>
+  <div class="month-grid" id="monthGrid"></div>
+</div>
+
+<!-- ===== SETTINGS ===== -->
+<div id="tab-settings" class="content">
+  <div class="settings-section">
+
+
+    <div class="settings-card">
+      <div class="settings-title">Dati</div>
+      <div class="settings-row" onclick="exportData()">
+        <div class="settings-icon green">⬆️</div>
+        <div class="settings-text">
+          <div class="settings-row-label">Esporta Dati</div>
+          <div class="settings-row-sub">Scarica backup JSON con tutti i turni</div>
+        </div>
+        <span class="settings-chevron">›</span>
+      </div>
+      <div class="settings-row" onclick="document.getElementById('importFile').click()">
+        <div class="settings-icon blue">⬇️</div>
+        <div class="settings-text">
+          <div class="settings-row-label">Importa Dati</div>
+          <div class="settings-row-sub">Ripristina da un file JSON salvato</div>
+        </div>
+        <span class="settings-chevron">›</span>
+      </div>
+      <div class="settings-row" onclick="openPrintModal()">
+        <div class="settings-icon purple">🖨️</div>
+        <div class="settings-text">
+          <div class="settings-row-label">Stampa</div>
+          <div class="settings-row-sub">Settimana o mese • Epson iPrint / AirPrint</div>
+        </div>
+        <span class="settings-chevron">›</span>
+      </div>
+      <input type="file" id="importFile" accept=".json" onchange="importData(event)">
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-title">Strumenti</div>
+      <div class="settings-row" onclick="addCurrentWeekToDb()">
+        <div class="settings-icon gold">➕</div>
+        <div class="settings-text">
+          <div class="settings-row-label">Aggiungi settimana corrente</div>
+          <div class="settings-row-sub">Crea template vuoto per questa settimana</div>
+        </div>
+        <span class="settings-chevron">›</span>
+      </div>
+      <div class="settings-row" onclick="confirmClear()">
+        <div class="settings-icon red">🗑️</div>
+        <div class="settings-text">
+          <div class="settings-row-label">Cancella Tutti i Dati</div>
+          <div class="settings-row-sub">Azione irreversibile</div>
+        </div>
+        <span class="settings-chevron">›</span>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-title">App Info</div>
+      <div class="settings-row" style="cursor:default">
+        <div class="settings-icon blue">ℹ️</div>
+        <div class="settings-text">
+          <div class="settings-row-label">Orari Daniele v1.0</div>
+          <div class="settings-row-sub">Gestione turni personale • Dati in locale</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item active" id="nav-weekly" onclick="switchTab('weekly')">
+    <div class="nav-icon">📅</div>
+    <div class="nav-label">Settimana</div>
+  </div>
+  <div class="nav-item" id="nav-monthly" onclick="switchTab('monthly')">
+    <div class="nav-icon">📊</div>
+    <div class="nav-label">Mese</div>
+  </div>
+  <div class="nav-item" id="nav-settings" onclick="switchTab('settings')">
+    <div class="nav-icon">⚙️</div>
+    <div class="nav-label">Impostazioni</div>
+  </div>
+</div>
+
+<script>
+// ───────── STATE ─────────
+const DAYS_IT = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+const DAYS_SHORT = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+const MONTHS_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+
+let state = {
+  db: {},        // key: "YYYY-WW" → { weekStart, days: [ {date, shifts:[{in,out}]} x7 ] }
+  target: 40,
+  currentWeekOffset: 0,
+  currentMonthOffset: 0,
+};
+
+// ───────── STORAGE ─────────
+function save() {
+  try { localStorage.setItem('orari_daniele', JSON.stringify(state)); } catch(e) {}
+}
+function load() {
+  try {
+    const raw = localStorage.getItem('orari_daniele');
+    if (raw) state = { ...state, ...JSON.parse(raw) };
+  } catch(e) {}
+}
+
+// ───────── DATE UTILS ─────────
+function getMondayOfWeek(date) {
+  const d = new Date(date);
+  const day = d.getDay(); // 0=sun
+  const diff = (day === 0) ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function getWeekKey(monday) {
+  const y = monday.getFullYear();
+  const start = new Date(y, 0, 1);
+  const weekNum = Math.ceil(((monday - start) / 86400000 + start.getDay() + 1) / 7);
+  return `${y}-W${String(weekNum).padStart(2,'0')}`;
+}
+
+function addDays(date, n) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + n);
+  return d;
+}
+
+function fmtDate(date) {
+  return `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')}`;
+}
+
+function parseDateLocal(str) {
+  // Parse YYYY-MM-DD as LOCAL midnight (avoids UTC shift bug su iOS/Safari in fuso UTC+2)
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function parseTime(str) {
+  if (!str) return null;
+  const parts = str.replace(',','.').replace(':','.').split('.');
+  if (parts.length === 1) {
+    const v = parseFloat(parts[0]);
+    return isNaN(v) ? null : v;
+  }
+  const h = parseInt(parts[0]) || 0;
+  const m = parseInt(parts[1].padEnd(2,'0')) || 0;
+  return h + m/60;
+}
+
+function shiftHours(inVal, outVal) {
+  if (inVal === null || outVal === null) return 0;
+  let diff = outVal - inVal;
+  if (diff < 0) diff += 24;
+  return Math.max(0, diff);
+}
+
+function fmtH(h) {
+  if (!h) return '0h';
+  const hh = Math.floor(h);
+  const mm = Math.round((h - hh) * 60);
+  if (mm === 0) return `${hh}h`;
+  return `${hh}h ${String(mm).padStart(2,'0')}m`;
+}
+
+// ───────── WEEK DATA ─────────
+function getWeekData(monday) {
+  const key = getWeekKey(monday);
+  if (!state.db[key]) {
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(monday, i);
+      // Usa formato locale per evitare shift UTC su iOS (UTC+2)
+      const dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      days.push({ date: dateStr, shifts: [] });
+    }
+    const mondayStr = monday.getFullYear() + '-' + String(monday.getMonth()+1).padStart(2,'0') + '-' + String(monday.getDate()).padStart(2,'0');
+    state.db[key] = { weekStart: mondayStr, days };
+  }
+  return state.db[key];
+}
+
+function getTotalHoursForWeek(weekData) {
+  return weekData.days.reduce((tot, day) => {
+    return tot + day.shifts.reduce((s, sh) => s + shiftHours(parseTime(sh.in), parseTime(sh.out)), 0);
+  }, 0);
+}
+
+// ───────── CURRENT WEEK ─────────
+function getCurrentMonday() {
+  const now = new Date();
+  return addDays(getMondayOfWeek(now), state.currentWeekOffset * 7);
+}
+
+// ───────── RENDER WEEKLY ─────────
+function renderWeekly() {
+  const monday = getCurrentMonday();
+  const sunday = addDays(monday, 6);
+  const key = getWeekKey(monday);
+  const weekData = getWeekData(monday);
+
+  document.getElementById('weekLabelMain').textContent =
+    `${fmtDate(monday)} – ${fmtDate(sunday)} ${sunday.getFullYear()}`;
+  document.getElementById('weekLabelSub').textContent =
+    `Settimana ${key.split('-W')[1]}`;
+  document.getElementById('headerWeekLabel').textContent =
+    `Sett. ${key.split('-W')[1]} • ${monday.getFullYear()}`;
+
+  // summary
+  const totalH = getTotalHoursForWeek(weekData);
+  const daysWorked = weekData.days.filter(d => d.shifts.length > 0 &&
+    d.shifts.some(sh => shiftHours(parseTime(sh.in), parseTime(sh.out)) > 0)).length;
+  const avg = daysWorked > 0 ? totalH / daysWorked : 0;
+
+  document.getElementById('sumWeekHours').innerHTML = `${fmtH(totalH).replace('h','<span class="summary-unit">h</span>').replace('m','<span class="summary-unit">m</span>')}`;
+  // simpler
+  document.getElementById('sumWeekHours').textContent = fmtH(totalH);
+  document.getElementById('sumDaysWorked').textContent = daysWorked + ' gg';
+  document.getElementById('sumAvgDay').textContent = fmtH(avg);
+
+  // days
+  const list = document.getElementById('daysList');
+  list.innerHTML = '';
+
+  for (let i = 0; i < 7; i++) {
+    const dayData = weekData.days[i];
+    const dayDate = parseDateLocal(dayData.date);
+    const dayTotal = dayData.shifts.reduce((s, sh) =>
+      s + shiftHours(parseTime(sh.in), parseTime(sh.out)), 0);
+    const isToday = dayDate.toDateString() === new Date().toDateString();
+
+    const card = document.createElement('div');
+    card.className = 'day-card';
+
+    const badgeClass = dayTotal > 0 ? '' : ' zero';
+    const dotClass = dayTotal > 0 ? '' : (dayData.shifts.length > 0 ? ' rest' : ' off');
+
+    // Build shifts preview string e.g. "13→17 · 18→20"
+    const shiftsPreview = dayData.shifts
+      .filter(sh => sh.in || sh.out)
+      .map(sh => `${sh.in||'?'}→${sh.out||'?'}`)
+      .join(' · ');
+
+    card.innerHTML = `
+      <div class="day-header" onclick="toggleDay('body-${i}')">
+        <div class="day-name-group">
+          <div class="day-dot${dotClass}"></div>
+          <div>
+            <div class="day-name" style="${isToday ? 'color:var(--accent2)' : ''}">${DAYS_IT[dayDate.getDay()]}${isToday ? ' ·' : ''}</div>
+            <div class="day-date">${fmtDate(dayDate)} ${dayDate.getFullYear()}</div>
+            ${shiftsPreview ? `<div class="day-shifts-preview">${shiftsPreview}</div>` : ''}
+          </div>
+        </div>
+        <div class="day-hours-badge${badgeClass}">${fmtH(dayTotal)}</div>
+      </div>
+      <div class="day-body-wrapper${isToday ? ' open' : ''}" id="body-${i}">
+        <div class="day-body">
+          <div id="shifts-${i}"></div>
+          <button class="add-shift-btn" onclick="addShift(${i})">+ Aggiungi turno</button>
+        </div>
+      </div>
+    `;
+    list.appendChild(card);
+    renderShifts(i, dayData, key);
+  }
+}
+
+function toggleDay(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
+function renderShifts(dayIdx, dayData, weekKey) {
+  const container = document.getElementById(`shifts-${dayIdx}`);
+  if (!container) return;
+  container.innerHTML = '';
+
+  dayData.shifts.forEach((sh, si) => {
+    const inVal = parseTime(sh.in);
+    const outVal = parseTime(sh.out);
+    const h = shiftHours(inVal, outVal);
+
+    const row = document.createElement('div');
+    row.className = 'shift-row';
+    row.innerHTML = `
+      <div class="shift-label">Turno ${si+1}</div>
+      <div class="time-input-group">
+        <input type="text" class="time-input" placeholder="8.00" value="${sh.in||''}"
+          inputmode="decimal"
+          onchange="updateShift('${weekKey}',${dayIdx},${si},'in',this.value)"
+          oninput="liveUpdateShift('${weekKey}',${dayIdx},${si},'in',this.value)">
+        <span class="time-sep">→</span>
+        <input type="text" class="time-input" placeholder="17.00" value="${sh.out||''}"
+          inputmode="decimal"
+          onchange="updateShift('${weekKey}',${dayIdx},${si},'out',this.value)"
+          oninput="liveUpdateShift('${weekKey}',${dayIdx},${si},'out',this.value)">
+      </div>
+      <div class="shift-hours-badge" id="sh-badge-${dayIdx}-${si}">${h > 0 ? fmtH(h) : '—'}</div>
+      <button class="remove-shift-btn" onclick="confirmRemoveShift('${weekKey}',${dayIdx},${si})">×</button>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function addShift(dayIdx) {
+  const monday = getCurrentMonday();
+  const key = getWeekKey(monday);
+  const weekData = getWeekData(monday);
+  weekData.days[dayIdx].shifts.push({ in: '', out: '' });
+  save();
+  renderWeekly();
+  // keep open
+  setTimeout(() => {
+    const el = document.getElementById(`body-${dayIdx}`);
+    if (el) el.classList.add('open');
+  }, 10);
+}
+
+function confirmRemoveShift(weekKey, dayIdx, shiftIdx) {
+  if (confirm('Eliminare questo turno?')) {
+    removeShift(weekKey, dayIdx, shiftIdx);
+  }
+}
+
+function removeShift(weekKey, dayIdx, shiftIdx) {
+  if (!state.db[weekKey]) return;
+  state.db[weekKey].days[dayIdx].shifts.splice(shiftIdx, 1);
+  save();
+  renderWeekly();
+  setTimeout(() => {
+    const el = document.getElementById(`body-${dayIdx}`);
+    if (el) el.classList.add('open');
+  }, 10);
+}
+
+function updateShift(weekKey, dayIdx, shiftIdx, field, val) {
+  if (!state.db[weekKey]) return;
+  state.db[weekKey].days[dayIdx].shifts[shiftIdx][field] = val.trim();
+  save();
+  refreshSummary(weekKey);
+}
+
+function liveUpdateShift(weekKey, dayIdx, shiftIdx, field, val) {
+  if (!state.db[weekKey]) return;
+  state.db[weekKey].days[dayIdx].shifts[shiftIdx][field] = val.trim();
+  // update only the badge
+  const sh = state.db[weekKey].days[dayIdx].shifts[shiftIdx];
+  const h = shiftHours(parseTime(sh.in), parseTime(sh.out));
+  const badge = document.getElementById(`sh-badge-${dayIdx}-${shiftIdx}`);
+  if (badge) badge.textContent = h > 0 ? fmtH(h) : '—';
+  refreshSummary(weekKey);
+}
+
+function refreshSummary(weekKey) {
+  const weekData = state.db[weekKey];
+  if (!weekData) return;
+  const totalH = getTotalHoursForWeek(weekData);
+  const daysWorked = weekData.days.filter(d => d.shifts.some(sh => shiftHours(parseTime(sh.in), parseTime(sh.out)) > 0)).length;
+  const avg = daysWorked > 0 ? totalH / daysWorked : 0;
+
+  document.getElementById('sumWeekHours').textContent = fmtH(totalH);
+  document.getElementById('sumDaysWorked').textContent = daysWorked + ' gg';
+  document.getElementById('sumAvgDay').textContent = fmtH(avg);
+
+  // update day badges
+  weekData.days.forEach((day, i) => {
+    const dayTotal = day.shifts.reduce((s, sh) => s + shiftHours(parseTime(sh.in), parseTime(sh.out)), 0);
+    const badge = document.querySelector(`#daysList .day-card:nth-child(${i+1}) .day-hours-badge`);
+    if (badge) {
+      badge.textContent = fmtH(dayTotal);
+      badge.className = 'day-hours-badge' + (dayTotal > 0 ? '' : ' zero');
+    }
+  });
+}
+
+// ───────── MONTHLY ─────────
+function getCurrentMonthDate() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth() + state.currentMonthOffset, 1);
+}
+
+function renderMonthly() {
+  const monthDate = getCurrentMonthDate();
+  const y = monthDate.getFullYear();
+  const m = monthDate.getMonth();
+
+  document.getElementById('monthLabelMain').textContent = `${MONTHS_IT[m]} ${y}`;
+
+  // collect weeks in this month
+  const firstDay = new Date(y, m, 1);
+  const lastDay = new Date(y, m+1, 0);
+  let monday = getMondayOfWeek(firstDay);
+  if (monday > firstDay) monday = addDays(monday, -7);
+
+  const grid = document.getElementById('monthGrid');
+  grid.innerHTML = '';
+
+  let monthTotal = 0;
+  let weekNum = 1;
+  let workedDays = 0;
+
+  const weeksData = [];
+  let cur = new Date(monday);
+  while (cur <= lastDay) {
+    const wMonday = new Date(cur);
+    const wSunday = addDays(wMonday, 6);
+    const key = getWeekKey(wMonday);
+    const weekData = state.db[key];
+    const weekH = weekData ? getTotalHoursForWeek(weekData) : 0;
+    const wd = weekData ? weekData.days.filter(d => d.shifts.some(sh => shiftHours(parseTime(sh.in), parseTime(sh.out)) > 0)).length : 0;
+    monthTotal += weekH;
+    workedDays += wd;
+    weeksData.push({ wMonday, wSunday, weekH, weekNum, key });
+    weekNum++;
+    cur = addDays(cur, 7);
+  }
+
+  weeksData.forEach(w => {
+    const row = document.createElement('div');
+    row.className = 'month-week-row';
+    row.innerHTML = `
+      <div>
+        <div class="month-week-label">Settimana ${w.weekNum}</div>
+        <div class="month-week-date">${fmtDate(w.wMonday)} – ${fmtDate(w.wSunday)}</div>
+      </div>
+      <div class="month-week-hours">${fmtH(w.weekH)}</div>
+    `;
+    row.onclick = () => {
+      // jump to that week
+      const now = getMondayOfWeek(new Date());
+      const diff = Math.round((w.wMonday - now) / (7 * 86400000));
+      state.currentWeekOffset = diff;
+      switchTab('weekly');
+    };
+    grid.appendChild(row);
+  });
+
+  document.getElementById('monthTotalHours').textContent = fmtH(monthTotal);
+  document.getElementById('monthDaysInfo').textContent = `${workedDays} giorni lavorati`;
+}
+
+// ───────── NAV ─────────
+function changeWeek(dir) {
+  state.currentWeekOffset += dir;
+  save();
+  renderWeekly();
+}
+
+function changeMonth(dir) {
+  state.currentMonthOffset += dir;
+  renderMonthly();
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+  document.getElementById(`nav-${name}`).classList.add('active');
+
+  if (name === 'weekly') renderWeekly();
+  if (name === 'monthly') renderMonthly();
+}
+
+// ───────── SETTINGS ─────────
+
+function exportData() {
+  const json = JSON.stringify(state, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const today = new Date().toISOString().split('T')[0];
+  a.download = `orari_daniele_${today}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Dati esportati ✓', 'success');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (imported.db) {
+        state.db = { ...state.db, ...imported.db };
+        if (imported.target) state.target = imported.target;
+              save();
+        renderWeekly();
+        showToast('Dati importati ✓', 'success');
+      } else {
+        showToast('File non valido', 'error');
+      }
+    } catch(err) {
+      showToast('Errore lettura file', 'error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function addCurrentWeekToDb() {
+  const monday = getCurrentMonday();
+  getWeekData(monday); // creates if not exists
+  save();
+  renderWeekly();
+  showToast('Settimana aggiunta ✓', 'success');
+}
+
+function confirmClear() {
+  if (confirm('Cancellare TUTTI i dati? L\'azione è irreversibile.')) {
+    state.db = {};
+    save();
+    renderWeekly();
+    showToast('Dati cancellati', 'error');
+  }
+}
+
+// ───────── TOAST ─────────
+let toastTimer;
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.classList.remove('show'); }, 2500);
+}
+
+// ───────── STAMPA ─────────
+let printScope = 'week';
+
+function openPrintModal() {
+  document.getElementById('printModal').classList.add('open');
+}
+function closePrintModal(e) {
+  if (!e || e.target === document.getElementById('printModal')) {
+    document.getElementById('printModal').classList.remove('open');
+  }
+}
+function selectScope(scope) {
+  printScope = scope;
+  document.getElementById('btnScopeWeek').classList.toggle('selected', scope === 'week');
+  document.getElementById('btnScopeMonth').classList.toggle('selected', scope === 'month');
+}
+
+function buildPrintHTML() {
+  const now = new Date();
+  let title, tableRows = '', summaryRows = '';
+
+  if (printScope === 'week') {
+    const monday = getCurrentMonday();
+    const sunday = addDays(monday, 6);
+    const weekData = getWeekData(monday);
+    title = `Settimana ${fmtDate(monday)} – ${fmtDate(sunday)} ${sunday.getFullYear()}`;
+    let totalH = 0;
+    weekData.days.forEach((day, i) => {
+      const dayDate = parseDateLocal(day.date);
+      const dayH = day.shifts.reduce((s, sh) => s + shiftHours(parseTime(sh.in), parseTime(sh.out)), 0);
+      totalH += dayH;
+      const shiftsText = day.shifts.length > 0
+        ? day.shifts.map(sh => `${sh.in||'—'} → ${sh.out||'—'}`).join('<br>')
+        : '<span style="color:#999">Riposo</span>';
+      const isToday = dayDate.toDateString() === now.toDateString();
+      tableRows += `
+        <tr style="${isToday ? 'background:#f0f7ff;font-weight:600' : ''}">
+          <td>${DAYS_IT[dayDate.getDay()]}</td>
+          <td style="color:#666;font-size:12px">${fmtDate(dayDate)}</td>
+          <td>${shiftsText}</td>
+          <td style="text-align:right;font-weight:700;color:${dayH > 0 ? '#1a56db' : '#999'}">${dayH > 0 ? fmtH(dayH) : '—'}</td>
+        </tr>`;
+    });
+    const daysWorked = weekData.days.filter(d => d.shifts.some(sh => shiftHours(parseTime(sh.in), parseTime(sh.out)) > 0)).length;
+    summaryRows = `
+      <tr><td>Ore totali settimana</td><td style="font-weight:700;color:#1a56db">${fmtH(totalH)}</td></tr>
+      <tr><td>Giorni lavorati</td><td>${daysWorked} / 7</td></tr>
+      <tr><td>Obiettivo</td><td>${state.target}h</td></tr>
+      <tr><td>Avanzamento</td><td>${Math.min(100,Math.round((totalH/state.target)*100))}%</td></tr>`;
+  } else {
+    const monthDate = getCurrentMonthDate();
+    const y = monthDate.getFullYear();
+    const m = monthDate.getMonth();
+    title = `${MONTHS_IT[m]} ${y}`;
+    const firstDay = new Date(y, m, 1);
+    const lastDay = new Date(y, m+1, 0);
+    let monday = getMondayOfWeek(firstDay);
+    if (monday > firstDay) monday = addDays(monday, -7);
+    let monthTotal = 0, workedDays = 0, weekNum = 1;
+    let cur = new Date(monday);
+    while (cur <= lastDay) {
+      const wMonday = new Date(cur);
+      const wSunday = addDays(wMonday, 6);
+      const key = getWeekKey(wMonday);
+      const wd = state.db[key];
+      const weekH = wd ? getTotalHoursForWeek(wd) : 0;
+      const wDays = wd ? wd.days.filter(d => d.shifts.some(sh => shiftHours(parseTime(sh.in), parseTime(sh.out)) > 0)).length : 0;
+      monthTotal += weekH;
+      workedDays += wDays;
+      tableRows += `
+        <tr>
+          <td>Settimana ${weekNum}</td>
+          <td style="color:#666;font-size:12px">${fmtDate(wMonday)} – ${fmtDate(wSunday)}</td>
+          <td>${wDays} giorni</td>
+          <td style="text-align:right;font-weight:700;color:${weekH > 0 ? '#1a56db' : '#999'}">${weekH > 0 ? fmtH(weekH) : '—'}</td>
+        </tr>`;
+      weekNum++;
+      cur = addDays(cur, 7);
+    }
+    summaryRows = `
+      <tr><td>Ore totali mese</td><td style="font-weight:700;color:#1a56db">${fmtH(monthTotal)}</td></tr>
+      <tr><td>Giorni lavorati</td><td>${workedDays}</td></tr>`;
+  }
+
+  const printDate = `Stampato il ${now.getDate()} ${MONTHS_IT[now.getMonth()]} ${now.getFullYear()}`;
+
+  return `<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Orari Daniele – ${title}</title>
+<style>
+  body { font-family: -apple-system, Helvetica Neue, Arial, sans-serif; margin: 0; padding: 20px; color: #111; background: #fff; }
+  .header { background: linear-gradient(135deg, #1e3a5f, #1a1035); color: #fff; padding: 24px 20px; border-radius: 12px; margin-bottom: 20px; }
+  .header h1 { margin: 0 0 4px; font-size: 22px; }
+  .header p { margin: 0; font-size: 13px; opacity: 0.7; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+  th { background: #f1f5f9; text-align: left; padding: 10px 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #555; border-bottom: 2px solid #e2e8f0; }
+  td { padding: 11px 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px; vertical-align: top; }
+  .summary { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 4px 0; }
+  .summary td { font-size: 14px; }
+  .summary td:first-child { color: #555; }
+  .footer { font-size: 11px; color: #999; text-align: center; margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 14px; }
+  @media print {
+    body { padding: 10px; }
+    .no-print { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Orari Daniele</h1>
+  <p>${title}</p>
+</div>
+<table>
+  <thead><tr>
+    <th>Giorno</th><th>Data</th><th>Turni</th><th style="text-align:right">Ore</th>
+  </tr></thead>
+  <tbody>${tableRows}</tbody>
+</table>
+<div class="summary"><table>${summaryRows}</table></div>
+<div class="footer">${printDate} • Orari Daniele App</div>
+<div class="no-print" style="margin-top:20px;text-align:center">
+  <p style="font-size:13px;color:#666;margin-bottom:12px">Usa <strong>Condividi → Epson iPrint</strong> oppure <strong>AirPrint</strong> per stampare</p>
+  <button onclick="window.print()" style="background:#1a56db;color:#fff;border:none;border-radius:10px;padding:12px 28px;font-size:15px;font-weight:600;cursor:pointer">🖨️ Stampa diretta</button>
+</div>
+</body></html>`;
+}
+
+function doPrint() {
+  closePrintModal();
+  const html = buildPrintHTML();
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  showToast('Documento aperto ✓', 'success');
+}
+
+// ───────── INIT ─────────
+function init() {
+  load();
+
+  // today label
+  const now = new Date();
+  document.getElementById('todayLabel').textContent =
+    `${DAYS_IT[now.getDay()]}, ${now.getDate()} ${MONTHS_IT[now.getMonth()]} ${now.getFullYear()}`;
+
+  // Preload example data from xlsx structure if db empty
+  if (Object.keys(state.db).length === 0) {
+    // Seed the week from 23 Jun to 5 Jul (from the xlsx)
+    const exMonday = new Date(2025, 5, 23); // June 23, 2025
+    const exKey = getWeekKey(exMonday);
+    const weekData = getWeekData(exMonday);
+    // From xlsx: LUN 13-17, MAR 15.3-19.3, MER 13-17, GIO off, VEN off, SAB 11-15, DOM 12.3-16.3
+    const preloaded = [
+      [{ in: '13', out: '17' }],    // Lun
+      [{ in: '15.3', out: '19.3' }], // Mar
+      [{ in: '13', out: '17' }],    // Mer
+      [],                            // Gio
+      [],                            // Ven
+      [{ in: '11', out: '15' }],    // Sab
+      [{ in: '12.3', out: '16.3' }], // Dom
+    ];
+    preloaded.forEach((shifts, i) => {
+      weekData.days[i].shifts = shifts;
+    });
+    save();
+  }
+
+  renderWeekly();
+}
+
+init();
+</script>
+</div><!-- /app -->
+</body>
+</html>
