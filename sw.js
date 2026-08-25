@@ -1,4 +1,4 @@
-const CACHE = 'orari-daniele-v1';
+const CACHE = 'orari-daniele-v2';
 const ASSETS = [
   './',
   './index.html',
